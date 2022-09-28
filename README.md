@@ -1,2 +1,2 @@
 # FindYourCar
-Find , and cars thru localization
+Find and add cars thru localization
