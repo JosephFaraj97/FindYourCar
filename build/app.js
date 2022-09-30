@@ -7,6 +7,7 @@ const express_1 = __importDefault(require("express"));
 const logger_utils_1 = require("./utils/logger.utils");
 const authentication_routes_1 = require("./routes/authentication.routes");
 const admin_routes_1 = require("./routes/admin.routes");
+const user_routes_1 = require("./routes/user.routes");
 const routes_config_1 = require("./config/routes.config");
 const validationJWT_1 = require("./middleware/validationJWT");
 const app = (0, express_1.default)();
@@ -15,6 +16,7 @@ require('dotenv').config();
 const db = require('./config/mongoDB.config');
 app.use('/authentication', (0, authentication_routes_1.authenticationRoutes)((0, routes_config_1.defaultRouter)(), db));
 app.use('/admin', validationJWT_1.extractJWT, (0, admin_routes_1.adminRoutes)((0, routes_config_1.defaultRouter)(), db));
+app.use('/user', validationJWT_1.extractJWT, (0, user_routes_1.userRoutes)((0, routes_config_1.defaultRouter)(), db));
 app.listen(port, () => {
     logger_utils_1.logger.info(`Server running on port: ${port}`);
 });

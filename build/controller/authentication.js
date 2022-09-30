@@ -19,6 +19,7 @@ const logger_utils_1 = require("../utils/logger.utils");
 const db_utils_1 = require("../utils/db.utils");
 const lodash_1 = require("lodash");
 const validationJWT_1 = require("../middleware/validationJWT");
+const email_utils_1 = require("../utils/email.utils");
 const signUp = (db, req, res) => __awaiter(void 0, void 0, void 0, function* () {
     if ((0, lodash_1.isEmpty)(db)) {
         const error = {
@@ -44,18 +45,19 @@ const signUp = (db, req, res) => __awaiter(void 0, void 0, void 0, function* () 
         password: crypto_js_1.default.MD5(password).toString(),
         status: "ENABLED",
     };
-    const userMongoInsertionResult = yield (0, db_utils_1.insert)(collection, Object.assign({}, user));
-    delete userMongoInsertionResult.password;
-    (0, validationJWT_1.signJWT)(user, (error, token) => {
+    (0, validationJWT_1.signJWT)(user, (error, token) => __awaiter(void 0, void 0, void 0, function* () {
         if (error)
             throw { message: error.message, status: 401 };
         else if (token) {
             logger_utils_1.logger.info("Successfully signup.");
+            yield (0, email_utils_1.sendEmail)({ to: email, subject: 'Welcome Message', text: 'Nice to meet you' });
+            const userMongoInsertionResult = yield (0, db_utils_1.insert)(collection, Object.assign({}, user));
+            delete userMongoInsertionResult.password;
             res
                 .status(201)
                 .json({ message: "Authentication successful", user, token });
         }
-    });
+    }));
 });
 exports.signUp = signUp;
 const login = (db, req, res) => __awaiter(void 0, void 0, void 0, function* () {

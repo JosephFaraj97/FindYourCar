@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateById = exports.findOne = exports.findById = exports.insert = void 0;
+exports.find = exports.removeById = exports.updateById = exports.findOne = exports.findById = exports.insert = void 0;
 const lodash_1 = require("lodash");
 const mongodb_1 = require("mongodb");
 const mongoose_1 = __importDefault(require("mongoose"));
@@ -82,3 +82,38 @@ const updateById = (collection, id, body) => {
     });
 };
 exports.updateById = updateById;
+const removeById = (collection, id) => {
+    if ((0, lodash_1.isEmpty)(collection))
+        throw { message: "Missing Collection", status: 500 };
+    if ((0, lodash_1.isEmpty)(id))
+        throw { message: "Missing id", status: 500 };
+    return new Promise((resolve, reject) => {
+        collection.deleteOne({ _id: new mongodb_1.ObjectId(id) }, (error, result) => {
+            if (error) {
+                reject(error);
+            }
+            else {
+                resolve(result.deletedCount === 1);
+            }
+        });
+    });
+};
+exports.removeById = removeById;
+const find = (collection, params, sort = {}, includeFields = {}) => {
+    if ((0, lodash_1.isEmpty)(collection))
+        throw { message: "Missing Collection", status: 500 };
+    return new Promise((resolve, reject) => {
+        collection
+            .find(params, includeFields)
+            .sort(sort)
+            .toArray((error, result) => {
+            if (error) {
+                reject(error);
+            }
+            else {
+                resolve(result);
+            }
+        });
+    });
+};
+exports.find = find;

@@ -7,6 +7,7 @@ import { insert, findOne } from "../utils/db.utils";
 import { isEmpty } from "lodash";
 import IUser from "../interface/user";
 import { signJWT } from "../middleware/validationJWT";
+import { sendEmail } from "../utils/email.utils";
 
 
 const signUp = async ( db: any, req: Request, res: Response) => {
@@ -38,14 +39,15 @@ const signUp = async ( db: any, req: Request, res: Response) => {
       password: cryptojs.MD5(password).toString(),
       status: "ENABLED",
     };
-  const userMongoInsertionResult: any = await insert(collection, { ...user });
-  delete userMongoInsertionResult.password;
 
-  signJWT(user, (error, token) => {
+  signJWT(user, async (error, token) => {
     if (error) throw { message: error.message, status: 401 };
     else if (token) {
       logger.info("Successfully signup.");
+      await sendEmail({ to: email ,subject: 'Welcome Message', text: 'Nice to meet you' })
 
+      const userMongoInsertionResult: any = await insert(collection, { ...user });
+      delete userMongoInsertionResult.password;
       res
         .status(201)
         .json({ message: "Authentication successful", user, token });

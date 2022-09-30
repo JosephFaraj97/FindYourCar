@@ -9,19 +9,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.changeUserStatus = void 0;
+exports.getCarsByCategory = void 0;
 const logger_utils_1 = require("../../utils/logger.utils");
-const update_1 = require("../../service/admin/update");
-const changeUserStatus = (db, req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { status, id } = req.body;
+const get_1 = require("../../service/user/get");
+const getCarsByCategory = (db, req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        logger_utils_1.logger.info(`Trying to change user status.`);
-        const t = yield (0, update_1.updateUserStatus)(status, id, db);
-        console.log("ttttt", t);
-        logger_utils_1.logger.info(`Successfully changed user status.`);
-        res
-            .status(201)
-            .json({ message: "Status changed successful", success: true, t: t });
+        logger_utils_1.logger.info(`Trying to get car by category.`);
+        const result = yield (0, get_1.getCarsByCategory)(db);
+        logger_utils_1.logger.info(`Successfully got car by category.`);
+        res.status(201)
+            .json({ result });
     }
     catch (error) {
         logger_utils_1.logger.error(error);
@@ -29,4 +26,4 @@ const changeUserStatus = (db, req, res) => __awaiter(void 0, void 0, void 0, fun
         res.status(errorStatus).json({ message: error.message, errorStatus });
     }
 });
-exports.changeUserStatus = changeUserStatus;
+exports.getCarsByCategory = getCarsByCategory;

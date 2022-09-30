@@ -3,6 +3,7 @@ import express from 'express'
 import { logger } from './utils/logger.utils'
 import { authenticationRoutes } from './routes/authentication.routes';
 import { adminRoutes } from './routes/admin.routes';
+import { userRoutes } from './routes/user.routes';
 import { defaultRouter } from './config/routes.config';
 import { extractJWT } from './middleware/validationJWT';
 
@@ -15,6 +16,7 @@ const db = require('./config/mongoDB.config')
 
 app.use('/authentication', authenticationRoutes(defaultRouter(), db))
 app.use('/admin', extractJWT ,adminRoutes(defaultRouter(), db))
+app.use('/user', extractJWT ,userRoutes(defaultRouter(), db))
 
 app.listen(port, () => {
     logger.info(`Server running on port: ${port}`)

@@ -9,18 +9,18 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.addCar = exports.addTag = exports.addCategory = void 0;
+exports.deleteCar = exports.deleteTag = exports.deleteCategory = void 0;
 const logger_utils_1 = require("../../utils/logger.utils");
-const add_1 = require("../../service/admin/add");
-const addCategory = (db, req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { name } = req.body;
+const delete_1 = require("../../service/admin/delete");
+const deleteCategory = (db, req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.body;
     try {
-        logger_utils_1.logger.info(`Trying to add category.`);
-        const result = yield (0, add_1.addCategoryServcie)(name, db);
-        logger_utils_1.logger.info(`Successfully added category.`);
+        logger_utils_1.logger.info(`Trying to delete category.`);
+        const result = yield (0, delete_1.deleteCategoryServcie)(id, db);
+        logger_utils_1.logger.info(`Successfully deleted category.`);
         res
             .status(201)
-            .json({ message: "Category added successful", success: true, result });
+            .json({ message: "category deleted successful", success: true, result });
     }
     catch (error) {
         logger_utils_1.logger.error(error);
@@ -28,16 +28,16 @@ const addCategory = (db, req, res) => __awaiter(void 0, void 0, void 0, function
         res.status(errorStatus).json({ message: error.message, errorStatus });
     }
 });
-exports.addCategory = addCategory;
-const addTag = (db, req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { name } = req.body;
+exports.deleteCategory = deleteCategory;
+const deleteTag = (db, req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.body;
     try {
-        logger_utils_1.logger.info(`Trying to add tag.`);
-        const result = yield (0, add_1.addTagServcie)(name, db);
-        logger_utils_1.logger.info(`Successfully added tag.`);
+        logger_utils_1.logger.info(`Trying to delete tag.`);
+        const result = yield (0, delete_1.deleteTagServcie)(id, db);
+        logger_utils_1.logger.info(`Successfully deleted tag.`);
         res
             .status(201)
-            .json({ message: "Tag added successful", success: true, result });
+            .json({ message: "tag deleted successful", success: true, result });
     }
     catch (error) {
         logger_utils_1.logger.error(error);
@@ -45,15 +45,16 @@ const addTag = (db, req, res) => __awaiter(void 0, void 0, void 0, function* () 
         res.status(errorStatus).json({ message: error.message, errorStatus });
     }
 });
-exports.addTag = addTag;
-const addCar = (db, { body }, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.deleteTag = deleteTag;
+const deleteCar = (db, req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.body;
     try {
-        logger_utils_1.logger.info(`Trying to add car.`);
-        const result = yield (0, add_1.addCarServcie)(body, db);
-        logger_utils_1.logger.info(`Successfully added car.`);
+        logger_utils_1.logger.info(`Trying to delete car.`);
+        const result = yield (0, delete_1.deleteCarServcie)(id, db);
+        logger_utils_1.logger.info(`Successfully deleted car.`);
         res
             .status(201)
-            .json({ message: "Car added successful", success: true, result });
+            .json({ message: "Car deleted successful", success: true, result });
     }
     catch (error) {
         logger_utils_1.logger.error(error);
@@ -61,4 +62,4 @@ const addCar = (db, { body }, res) => __awaiter(void 0, void 0, void 0, function
         res.status(errorStatus).json({ message: error.message, errorStatus });
     }
 });
-exports.addCar = addCar;
+exports.deleteCar = deleteCar;

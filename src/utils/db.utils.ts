@@ -90,3 +90,20 @@ export const removeById = (collection: any, id: string) => {
     );
   });
 };
+
+export const find = (collection: any, params: any, sort = {}, includeFields = {}) => {
+    if (isEmpty(collection)) throw { message: "Missing Collection", status: 500 };
+  
+    return new Promise((resolve, reject) => {
+        collection
+          .find(params, includeFields)
+          .sort(sort)
+          .toArray((error: any, result: any) => {
+            if (error) {
+              reject(error);
+            } else {
+              resolve(result);
+            }
+          });
+      });
+  };
