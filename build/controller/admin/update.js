@@ -16,12 +16,11 @@ const changeUserStatus = (db, req, res) => __awaiter(void 0, void 0, void 0, fun
     const { status, id } = req.body;
     try {
         logger_utils_1.logger.info(`Trying to change user status.`);
-        const t = yield (0, update_1.updateUserStatus)(status, id, db);
-        console.log("ttttt", t);
+        const user = yield (0, update_1.updateUserStatus)(status, id, db);
         logger_utils_1.logger.info(`Successfully changed user status.`);
         res
             .status(201)
-            .json({ message: "Status changed successful", success: true, t: t });
+            .json({ message: "Status changed successful", success: true, user });
     }
     catch (error) {
         logger_utils_1.logger.error(error);

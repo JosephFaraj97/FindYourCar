@@ -8,13 +8,12 @@ export const changeUserStatus = async (db: any, req: Request, res: Response) => 
 
   try {
     logger.info(`Trying to change user status.`);
-    const t = await updateUserStatus(status, id, db);
-    console.log("ttttt",t)
+    const user = await updateUserStatus(status, id, db);
     logger.info(`Successfully changed user status.`);
 
     res
       .status(201)
-      .json({ message: "Status changed successful", success: true, t: t });
+      .json({ message: "Status changed successful", success: true,user });
   } catch (error: any) {
     logger.error(error);
     const errorStatus = error.status || 500;

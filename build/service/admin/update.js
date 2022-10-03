@@ -8,10 +8,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateUserStatus = void 0;
 const lodash_1 = require("lodash");
-const db_utils_1 = require("../../utils/db.utils");
+const mongoose_1 = __importDefault(require("mongoose"));
+const user_model_1 = require("../../model/user.model");
+const User = mongoose_1.default.model("User", user_model_1.userSchema);
 const updateUserStatus = (status, id, db) => __awaiter(void 0, void 0, void 0, function* () {
     if ((0, lodash_1.isEmpty)(db)) {
         const error = {
@@ -20,12 +25,9 @@ const updateUserStatus = (status, id, db) => __awaiter(void 0, void 0, void 0, f
         };
         throw error;
     }
-    const collection = db.collection('users');
-    const userFromMongo = yield (0, db_utils_1.findOne)(collection, {
+    const userFromMongo = yield User.find({
         id
     });
-    const mongoId = userFromMongo._id;
-    delete userFromMongo._id;
     const user = userFromMongo;
     if ((0, lodash_1.isEmpty)(user)) {
         const error = {
@@ -34,8 +36,7 @@ const updateUserStatus = (status, id, db) => __awaiter(void 0, void 0, void 0, f
         };
         throw error;
     }
-    user.status = status;
-    const result = yield (0, db_utils_1.updateById)(collection, ((mongoId.toString()).split(" "))[0], Object.assign({}, user));
+    const result = yield User.findOneAndUpdate(user.id, { status }, { new: true });
     return result;
 });
 exports.updateUserStatus = updateUserStatus;

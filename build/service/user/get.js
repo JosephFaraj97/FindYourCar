@@ -8,9 +8,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getCarsByCategory = void 0;
 const lodash_1 = require("lodash");
+const mongoose_1 = __importDefault(require("mongoose"));
+const car_model_1 = require("../../model/car.model");
+const Category = mongoose_1.default.model("Category", car_model_1.categorySchema);
 const getCarsByCategory = (db) => __awaiter(void 0, void 0, void 0, function* () {
     if ((0, lodash_1.isEmpty)(db)) {
         const error = {
@@ -19,21 +25,14 @@ const getCarsByCategory = (db) => __awaiter(void 0, void 0, void 0, function* ()
         };
         throw error;
     }
-    const collection = yield db.collection('category');
-    return new Promise((resolve, reject) => {
-        collection.aggregate([
-            { $lookup: {
-                    from: 'cars',
-                    localField: 'id',
-                    foreignField: 'category',
-                    as: 'cars',
-                }
+    return Category.aggregate([
+        { $lookup: {
+                from: 'cars',
+                localField: 'id',
+                foreignField: 'category',
+                as: 'cars',
             }
-        ]).toArray(function (err, res) {
-            if (err)
-                reject(err);
-            resolve(res);
-        });
-    });
+        }
+    ]);
 });
 exports.getCarsByCategory = getCarsByCategory;

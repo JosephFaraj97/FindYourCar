@@ -1,9 +1,10 @@
 import { isEmpty } from "lodash";
-import { v4 as uuidv4 } from "uuid";
-import { getDistance } from "geolib";
 
-import { ITrip, ICoordinate } from "../../interface/trip";
-import { insert, findOne, find } from "../../utils/db.utils";
+import { ICoordinate } from "../../interface/trip";
+import mongoose from "mongoose";
+import { carSchema } from "../../model/car.model";
+
+const Car: any = mongoose.model("Car",carSchema)
 
 export const createTrip = async (userCoordinates: ICoordinate, db: any) => {
   if (isEmpty(db)) {
@@ -14,10 +15,7 @@ export const createTrip = async (userCoordinates: ICoordinate, db: any) => {
     throw error;
   }
 
-  const collectionCar = db.collection("cars");
-  return new Promise((resolve, reject) => {
-    collectionCar
-      .aggregate([
+  let nearest = await Car.aggregate([
         {
           $addFields: {
             isNear: {
@@ -46,14 +44,10 @@ export const createTrip = async (userCoordinates: ICoordinate, db: any) => {
           },
         },
       ])
-      .toArray(function (err: any, res: any) {
-        if (err) reject(err);
-        const lowest = res.reduce((previous: any, current: any) => {
-          return current.age < previous.age ? current : previous;
-        });
-        resolve(lowest);
+      nearest = nearest.reduce((previous: any, current: any) => {
+         return current.isNear.distance < previous.isNear.distance ? current : previous;
       });
-  });
+      return nearest
 };
 
 export const getAvailableCar = async (data: any, db: any) => {
@@ -64,21 +58,16 @@ export const getAvailableCar = async (data: any, db: any) => {
     };
     throw error;
   }
-  const tags = (data.tags).split(",") || [];
-  
-  const collectionCar = db.collection("cars");
-  return new Promise((resolve, reject) => {
-    collectionCar
-      .aggregate([
+  let tags: string ;
+  tags = data.tags? data.tags.split(",") : '';
+  const r = Car.aggregate([
         {
           $match: {
             $expr: {
               $and: [
                 {
                   $eq: [`$${data.criteria}`, data.value],
-                },
-                data.category ? { $eq: ["$category", data?.category ]} : {},
-                data.tags ? { tag: tags } : {}
+                }
               ],
             },
           },
@@ -86,30 +75,27 @@ export const getAvailableCar = async (data: any, db: any) => {
 
         {
           $lookup: {
-            from: "category",
+            from: "categories",
             localField: "category",
             foreignField: "id",
-            as: "category",
+            as: "categories",
           },
         },
         {
           $lookup: {
-            from: "tag",
+            from: "tags",
             localField: "tag",
             foreignField: "id",
-            as: "tag",
+            as: "tags",
           },
         },   
          { '$facet'    : {
             metadata: [ { $count: "total" }, { $addFields: { page: data.page } } ],
-            data: [ { $skip: data.rows }, { $limit: data.rows } ] // add projection here wish you re-shape the docs
+            data: [ { $skip: data.rows }, { $limit: data.rows } ] 
         } }
-      ])  .sort({ createdDate: 1 })
+      ]).sort({ createdDate: 1 })
       .skip(data.page)
       .limit(data.rows + data.page)
-      .toArray(function (err: any, res: any) {
-        if (err) reject(err);
-        resolve(res);
-      });
-  });
+      
+      return r;
 };

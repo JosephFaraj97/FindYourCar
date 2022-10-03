@@ -16,10 +16,12 @@ exports.login = exports.signUp = void 0;
 const uuid_1 = require("uuid");
 const crypto_js_1 = __importDefault(require("crypto-js"));
 const logger_utils_1 = require("../utils/logger.utils");
-const db_utils_1 = require("../utils/db.utils");
+const user_model_1 = require("../model/user.model");
 const lodash_1 = require("lodash");
 const validationJWT_1 = require("../middleware/validationJWT");
 const email_utils_1 = require("../utils/email.utils");
+const mongoose_1 = __importDefault(require("mongoose"));
+const User = mongoose_1.default.model("User", user_model_1.userSchema);
 const signUp = (db, req, res) => __awaiter(void 0, void 0, void 0, function* () {
     if ((0, lodash_1.isEmpty)(db)) {
         const error = {
@@ -30,12 +32,11 @@ const signUp = (db, req, res) => __awaiter(void 0, void 0, void 0, function* () 
     }
     const { email, password, name, role } = req.body;
     logger_utils_1.logger.info("Trying to signup user.");
-    const collection = yield db.collection("users");
-    const userByEmail = yield (0, db_utils_1.findOne)(collection, {
-        email
-    });
+    const userByEmail = yield User.findOne({ email });
     if (userByEmail) {
-        res.status(400).json({ message: "User already exists" });
+        return res
+            .status(201)
+            .json({ message: "User already exists", status: 400 });
     }
     const user = {
         id: (0, uuid_1.v4)(),
@@ -51,7 +52,8 @@ const signUp = (db, req, res) => __awaiter(void 0, void 0, void 0, function* () 
         else if (token) {
             logger_utils_1.logger.info("Successfully signup.");
             yield (0, email_utils_1.sendEmail)({ to: email, subject: 'Welcome Message', text: 'Nice to meet you' });
-            const userMongoInsertionResult = yield (0, db_utils_1.insert)(collection, Object.assign({}, user));
+            const userMongoInsertionResult = User(Object.assign({}, user));
+            yield userMongoInsertionResult.save();
             delete userMongoInsertionResult.password;
             res
                 .status(201)
@@ -70,12 +72,10 @@ const login = (db, req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
     const { email, password } = req.body;
     logger_utils_1.logger.info("Trying to login user.");
-    const collection = yield db.collection("users");
-    const userByEmail = yield (0, db_utils_1.findOne)(collection, {
-        email
-    });
+    const userByEmail = yield User.findOne({ email });
     delete userByEmail._id;
     const user = userByEmail;
+    console.log(user);
     if (user.password.includes(crypto_js_1.default.MD5(password).toString())) {
         (0, validationJWT_1.signJWT)(user, (error, token) => {
             if (error)

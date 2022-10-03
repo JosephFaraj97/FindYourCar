@@ -8,9 +8,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getAvailableCar = exports.createTrip = void 0;
 const lodash_1 = require("lodash");
+const mongoose_1 = __importDefault(require("mongoose"));
+const car_model_1 = require("../../model/car.model");
+const Car = mongoose_1.default.model("Car", car_model_1.carSchema);
 const createTrip = (userCoordinates, db) => __awaiter(void 0, void 0, void 0, function* () {
     if ((0, lodash_1.isEmpty)(db)) {
         const error = {
@@ -19,15 +25,12 @@ const createTrip = (userCoordinates, db) => __awaiter(void 0, void 0, void 0, fu
         };
         throw error;
     }
-    const collectionCar = db.collection("cars");
-    return new Promise((resolve, reject) => {
-        collectionCar
-            .aggregate([
-            {
-                $addFields: {
-                    isNear: {
-                        $function: {
-                            body: `
+    let nearest = yield Car.aggregate([
+        {
+            $addFields: {
+                isNear: {
+                    $function: {
+                        body: `
                     function(longitudeCar, latitudeCar, longitudeUser,latitudeUser){
                             var a = longitudeCar - longitudeUser;
                             var b = latitudeCar - latitudeUser;
@@ -39,27 +42,22 @@ const createTrip = (userCoordinates, db) => __awaiter(void 0, void 0, void 0, fu
                             }
                             return data;
                         }`,
-                            args: [
-                                "$latitude",
-                                "$longitude",
-                                userCoordinates.longitude,
-                                userCoordinates.latitude,
-                            ],
-                            lang: "js",
-                        },
+                        args: [
+                            "$latitude",
+                            "$longitude",
+                            userCoordinates.longitude,
+                            userCoordinates.latitude,
+                        ],
+                        lang: "js",
                     },
                 },
             },
-        ])
-            .toArray(function (err, res) {
-            if (err)
-                reject(err);
-            const lowest = res.reduce((previous, current) => {
-                return current.age < previous.age ? current : previous;
-            });
-            resolve(lowest);
-        });
+        },
+    ]);
+    nearest = nearest.reduce((previous, current) => {
+        return current.isNear.distance < previous.isNear.distance ? current : previous;
     });
+    return nearest;
 });
 exports.createTrip = createTrip;
 const getAvailableCar = (data, db) => __awaiter(void 0, void 0, void 0, function* () {
@@ -70,52 +68,42 @@ const getAvailableCar = (data, db) => __awaiter(void 0, void 0, void 0, function
         };
         throw error;
     }
-    const tags = (data.tags).split(",") || [];
-    const collectionCar = db.collection("cars");
-    return new Promise((resolve, reject) => {
-        collectionCar
-            .aggregate([
-            {
-                $match: {
-                    $expr: {
-                        $and: [
-                            {
-                                $eq: [`$${data.criteria}`, data.value],
-                            },
-                            data.category ? { $eq: ["$category", data === null || data === void 0 ? void 0 : data.category] } : {},
-                            data.tags ? { tag: tags } : {}
-                        ],
-                    },
+    let tags;
+    tags = data.tags ? data.tags.split(",") : '';
+    const r = Car.aggregate([
+        {
+            $match: {
+                $expr: {
+                    $and: [
+                        {
+                            $eq: [`$${data.criteria}`, data.value],
+                        }
+                    ],
                 },
             },
-            {
-                $lookup: {
-                    from: "category",
-                    localField: "category",
-                    foreignField: "id",
-                    as: "category",
-                },
+        },
+        {
+            $lookup: {
+                from: "categories",
+                localField: "category",
+                foreignField: "id",
+                as: "categories",
             },
-            {
-                $lookup: {
-                    from: "tag",
-                    localField: "tag",
-                    foreignField: "id",
-                    as: "tag",
-                },
+        },
+        {
+            $lookup: {
+                from: "tags",
+                localField: "tag",
+                foreignField: "id",
+                as: "tags",
             },
-            { '$facet': {
-                    metadata: [{ $count: "total" }, { $addFields: { page: data.page } }],
-                    data: [{ $skip: data.rows }, { $limit: data.rows }] // add projection here wish you re-shape the docs
-                } }
-        ]).sort({ createdDate: 1 })
-            .skip(data.page)
-            .limit(data.rows + data.page)
-            .toArray(function (err, res) {
-            if (err)
-                reject(err);
-            resolve(res);
-        });
-    });
+        },
+        { '$facet': {
+                metadata: [{ $count: "total" }, { $addFields: { page: data.page } }],
+                data: [{ $skip: data.rows }, { $limit: data.rows }]
+            } }
+    ])
+        .limit(data.rows + data.page);
+    return r;
 });
 exports.getAvailableCar = getAvailableCar;

@@ -1,7 +1,9 @@
 import { isEmpty } from 'lodash'
+import mongoose from 'mongoose';
 import IUser from '../../interface/user';
+import { userSchema } from '../../model/user.model';
 
-import { insert, findOne, updateById } from "../../utils/db.utils";
+const User: any = mongoose.model("User",userSchema)
 
 export const updateUserStatus = async (status: string, id: string, db: any) => {
     if (isEmpty(db)) {
@@ -12,14 +14,11 @@ export const updateUserStatus = async (status: string, id: string, db: any) => {
       throw error
     }
   
-    const collection = db.collection('users')
-  
-      const userFromMongo: any = await findOne(collection, {
+      const userFromMongo: any = await User.find({
         id
       })
-      const mongoId = userFromMongo._id
-      delete userFromMongo._id
       const user: IUser = userFromMongo
+
       if (isEmpty(user)) {
         const error = {
           message: `User was not found in MongoDB`,
@@ -27,11 +26,9 @@ export const updateUserStatus = async (status: string, id: string, db: any) => {
         }
         throw error
       }
-
-      user.status = status
-      const result = await updateById(collection, ((mongoId.toString()).split(" "))[0], {
-        ...user
-      })
-  
+      const result = await User.findOneAndUpdate(user.id, 
+        {status}, {new: true}
+      )
+      
       return result
     }

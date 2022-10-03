@@ -20,7 +20,7 @@ export const sendEmail = async ({
         subject,
         text
       };
-      console.log(mailOptions);
+      
       transporter.sendMail(mailOptions, function(error, info){
         if (error) {
           console.log(error);
