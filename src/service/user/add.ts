@@ -60,14 +60,16 @@ export const getAvailableCar = async (data: any, db: any) => {
   }
   let tags: string ;
   tags = data.tags? data.tags.split(",") : '';
-  const r = Car.aggregate([
+  return Car.aggregate([
         {
           $match: {
             $expr: {
               $and: [
                 {
                   $eq: [`$${data.criteria}`, data.value],
-                }
+                },
+                data.category ? { $eq: ["$category", data?.category ]} : {},
+                data.tags ? { tag: tags } : {}
               ],
             },
           },
@@ -96,6 +98,4 @@ export const getAvailableCar = async (data: any, db: any) => {
       ]).sort({ createdDate: 1 })
       .skip(data.page)
       .limit(data.rows + data.page)
-      
-      return r;
 };

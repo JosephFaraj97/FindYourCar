@@ -70,14 +70,16 @@ const getAvailableCar = (data, db) => __awaiter(void 0, void 0, void 0, function
     }
     let tags;
     tags = data.tags ? data.tags.split(",") : '';
-    const r = Car.aggregate([
+    return Car.aggregate([
         {
             $match: {
                 $expr: {
                     $and: [
                         {
                             $eq: [`$${data.criteria}`, data.value],
-                        }
+                        },
+                        data.category ? { $eq: ["$category", data === null || data === void 0 ? void 0 : data.category] } : {},
+                        data.tags ? { tag: tags } : {}
                     ],
                 },
             },
@@ -102,8 +104,8 @@ const getAvailableCar = (data, db) => __awaiter(void 0, void 0, void 0, function
                 metadata: [{ $count: "total" }, { $addFields: { page: data.page } }],
                 data: [{ $skip: data.rows }, { $limit: data.rows }]
             } }
-    ])
+    ]).sort({ createdDate: 1 })
+        .skip(data.page)
         .limit(data.rows + data.page);
-    return r;
 });
 exports.getAvailableCar = getAvailableCar;
