@@ -3,12 +3,15 @@ import { v4 as uuidv4 } from "uuid";
 import cryptojs from "crypto-js";
 
 import { logger } from "../utils/logger.utils";
-import { insert, findOne } from "../utils/db.utils";
+import { userSchema } from "../model/user.model";
 import { isEmpty } from "lodash";
 import IUser from "../interface/user";
 import { signJWT } from "../middleware/validationJWT";
 import { sendEmail } from "../utils/email.utils";
+import mongoose from "mongoose";
 
+
+const User: any = mongoose.model("User",userSchema)
 
 const signUp = async ( db: any, req: Request, res: Response) => {
   if (isEmpty(db)) {
@@ -22,13 +25,11 @@ const signUp = async ( db: any, req: Request, res: Response) => {
   const { email, password, name, role } = req.body;
 
   logger.info("Trying to signup user.");
-  const collection = await db.collection("users");
-  const userByEmail = await findOne(collection, {
-    email
-  })
-
+  const userByEmail = await User.findOne({ email })
   if(userByEmail) {
-    res.status(400).json({message: "User already exists"})
+    return  res
+    .status(201)
+    .json({message: "User already exists", status: 400})
   }
 
     const user:IUser = {
@@ -46,7 +47,8 @@ const signUp = async ( db: any, req: Request, res: Response) => {
       logger.info("Successfully signup.");
       await sendEmail({ to: email ,subject: 'Welcome Message', text: 'Nice to meet you' })
 
-      const userMongoInsertionResult: any = await insert(collection, { ...user });
+      const userMongoInsertionResult: any = User({...user})
+      await userMongoInsertionResult.save()
       delete userMongoInsertionResult.password;
       res
         .status(201)
@@ -66,12 +68,11 @@ const login = async ( db: any, req: Request, res: Response) => {
   
   const { email, password } = req.body;
     logger.info("Trying to login user.");
-    const collection = await db.collection("users");
-    const userByEmail: any = await findOne(collection, {
-        email
-    })
+    const userByEmail = await User.findOne({ email })
+
     delete userByEmail._id
     const user: IUser = userByEmail
+    console.log(user)
 
     if(user.password.includes(cryptojs.MD5(password).toString())){
         signJWT(user, (error, token) => {

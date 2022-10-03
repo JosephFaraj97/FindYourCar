@@ -2,7 +2,14 @@ import { isEmpty } from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import ICar from "../../interface/car";
 
-import { insert, findOne, find } from "../../utils/db.utils";
+import { insert, findOne, find } from "../../utils/testdb.utils";
+import { tagSchema, carSchema, categorySchema } from "../../model/car.model";
+import mongoose from "mongoose";
+
+const Tag = mongoose.model("tags",tagSchema)
+const Category = mongoose.model("categories",categorySchema)
+const Car = mongoose.model("cars",carSchema)
+
 
 export const addTagServcie = async (name: string, db: any) => {
   if (isEmpty(db)) {
@@ -16,14 +23,14 @@ export const addTagServcie = async (name: string, db: any) => {
     id: uuidv4(),
     name,
   };
-  const collection = db.collection("tag");
-  const tag = await findOne(collection, {
+  const tagToSaveToMongo = new Tag(data);
+  const tag = await Tag.findOne({
     name,
   });
   if (tag) {
     throw { message: "tag already exists", success: false };
   } else {
-    await insert(collection, data);
+    await tagToSaveToMongo.save();
     return data;
   }
 };
@@ -40,14 +47,14 @@ export const addCategoryServcie = async (name: string, db: any) => {
     id: uuidv4(),
     name,
   };
-  const collection = db.collection("category");
-  const category = await findOne(collection, {
+  const categoryToSaveToMongo = new Category(data);
+  const category = await Category.findOne({
     name,
   });
   if (category) {
     throw { message: "Category already exists", success: false };
   } else {
-    await insert(collection, data);
+    await categoryToSaveToMongo.save();
     return data;
   }
 };
@@ -68,8 +75,7 @@ export const addCarServcie = async (data: ICar, db: any) => {
     throw error;
   }
   let tagsArray: string[] = [];
-  const collectionTag = db.collection("tag");
-  const tag: any = await find(collectionTag, {});
+  const tag: any = await Tag.find({});
 
   tag.forEach((element: any) => {
     tagsArray.push(element.id);
@@ -82,8 +88,7 @@ export const addCarServcie = async (data: ICar, db: any) => {
       };
       throw error;
   }
-  const collectionCategory = db.collection("category");
-  const category = await findOne(collectionCategory, {
+  const category = await Category.findOne({
     id: data.category,
   });
   if (!category) {
@@ -93,17 +98,19 @@ export const addCarServcie = async (data: ICar, db: any) => {
     };
     throw error;
   }
-  const collection = db.collection("cars");
-  const car = await findOne(collection, {
+
+  data.id = uuidv4();
+  const car = await Car.findOne({
     id: data.id,
   });
+
+  const carToSaveToMongo = new Car(data);
   if (car) {
     throw { message: "car already exists", success: false };
   } else {
     data.id = uuidv4();
     data.createdDate = new Date();
-    console.log(data.createdDate);
-    await insert(collection, data);
+    await carToSaveToMongo.save();
     return data;
   }
 };

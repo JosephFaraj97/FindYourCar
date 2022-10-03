@@ -8,30 +8,22 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getMongoUrl = exports.getClient = exports.collection = exports.connect = void 0;
-const mongodb_1 = require("mongodb");
-const lodash_1 = require("lodash");
+exports.getMongoUrl = exports.connect = void 0;
+const mongoose_1 = __importDefault(require("mongoose"));
 const logger_utils_1 = require("../utils/logger.utils");
 const { MONGODB_HOST, MONGODB_PORT, MONGODB_DATABASE, MONGODB_USER, MONGODB_PWD } = process.env;
-let client;
-const getClient = () => client;
-exports.getClient = getClient;
 const getMongoUrl = () => `mongodb://${MONGODB_USER}:${MONGODB_PWD}@${MONGODB_HOST}:${MONGODB_PORT}/${MONGODB_DATABASE}`;
 exports.getMongoUrl = getMongoUrl;
-const collection = (name) => {
-    return client.collection(name);
-};
-exports.collection = collection;
 const connect = () => __awaiter(void 0, void 0, void 0, function* () {
-    if ((0, lodash_1.isEmpty)(client)) {
-        try {
-            const db = mongodb_1.MongoClient.connect(getMongoUrl());
-            client = (yield db).db(MONGODB_DATABASE);
-        }
-        catch (err) {
-            logger_utils_1.logger.error(err.message);
-        }
+    try {
+        mongoose_1.default.connect(getMongoUrl());
+    }
+    catch (err) {
+        logger_utils_1.logger.error(err.message);
     }
 });
 exports.connect = connect;

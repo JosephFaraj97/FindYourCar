@@ -29,7 +29,6 @@ const sendEmail = ({ to, subject, text }) => __awaiter(void 0, void 0, void 0, f
         subject,
         text
     };
-    console.log(mailOptions);
     transporter.sendMail(mailOptions, function (error, info) {
         if (error) {
             console.log(error);
