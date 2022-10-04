@@ -75,7 +75,6 @@ const login = (db, req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userByEmail = yield User.findOne({ email });
     delete userByEmail._id;
     const user = userByEmail;
-    console.log(user);
     if (user.password.includes(crypto_js_1.default.MD5(password).toString())) {
         (0, validationJWT_1.signJWT)(user, (error, token) => {
             if (error)

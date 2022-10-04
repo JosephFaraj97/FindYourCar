@@ -60,7 +60,7 @@ export const getAvailableCar = async (data: any, db: any) => {
   }
   let tags: string ;
   tags = data.tags? data.tags.split(",") : '';
-  return Car.aggregate([
+  return  Car.aggregate([
         {
           $match: {
             $expr: {
@@ -93,9 +93,7 @@ export const getAvailableCar = async (data: any, db: any) => {
         },   
          { '$facet'    : {
             metadata: [ { $count: "total" }, { $addFields: { page: data.page } } ],
-            data: [ { $skip: data.rows }, { $limit: data.rows } ] 
+            data: [ { $skip: data.rows }, { $limit: data.rows + data.page} ] 
         } }
       ]).sort({ createdDate: 1 })
-      .skip(data.page)
-      .limit(data.rows + data.page)
 };

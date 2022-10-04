@@ -102,10 +102,8 @@ const getAvailableCar = (data, db) => __awaiter(void 0, void 0, void 0, function
         },
         { '$facet': {
                 metadata: [{ $count: "total" }, { $addFields: { page: data.page } }],
-                data: [{ $skip: data.rows }, { $limit: data.rows }]
+                data: [{ $skip: data.rows }, { $limit: data.rows + data.page }]
             } }
-    ]).sort({ createdDate: 1 })
-        .skip(data.page)
-        .limit(data.rows + data.page);
+    ]).sort({ createdDate: 1 });
 });
 exports.getAvailableCar = getAvailableCar;

@@ -72,7 +72,6 @@ const login = async ( db: any, req: Request, res: Response) => {
 
     delete userByEmail._id
     const user: IUser = userByEmail
-    console.log(user)
 
     if(user.password.includes(cryptojs.MD5(password).toString())){
         signJWT(user, (error, token) => {
